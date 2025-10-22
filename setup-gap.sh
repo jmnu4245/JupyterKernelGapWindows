@@ -1,4 +1,22 @@
 #!/bin/bash
+
+progress_bar() {
+    local duration=$1
+    local elapsed=0
+    while [ $elapsed -lt $duration ]; do
+        local percent=$((elapsed * 100 / duration))
+        local filled=$((percent / 2))
+        local empty=$((50 - filled))
+        printf "\r["
+        printf "%0.s#" $(seq 1 $filled)
+        printf "%0.s-" $(seq 1 $empty)
+        printf "] %s%%" "$percent"
+        sleep 0.1
+        ((elapsed++))
+    done
+    printf "\r[##################################################] 100%%\n"
+}
+
 # --- PASO 1: Asegurarse de que se ejecuta como root ---
 if [ "$(id -u)" -ne 0 ]; then
     echo "[INFO] Este script debe ejecutarse como root (o con sudo)."
@@ -46,19 +64,3 @@ progress_bar 10
 sudo ln -s ~/gap-4.15.1/gap /usr/local/bin/gap
 echo "Instalación completada"
 
-progress_bar() {
-    local duration=$1
-    local elapsed=0
-    while [ $elapsed -lt $duration ]; do
-        local percent=$((elapsed * 100 / duration))
-        local filled=$((percent / 2))
-        local empty=$((50 - filled))
-        printf "\r["
-        printf "%0.s#" $(seq 1 $filled)
-        printf "%0.s-" $(seq 1 $empty)
-        printf "] %s%%" "$percent"
-        sleep 0.1
-        ((elapsed++))
-    done
-    printf "\r[##################################################] 100%%\n"
-}
