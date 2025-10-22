@@ -49,11 +49,11 @@ progress_bar 20
 pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1 &
 progress_bar 20
 # --- PASO 4: Descargar y compilar GAP ---
-cd "$USER_HOME"
+#cd "$USER_HOME"
 echo "[INFO] Descargando y descomprimiendo GAP..."
-wget https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
-tar -xzf "$USER_HOME/gap-4.15.1.tar.gz" > /dev/null 2>&1
-progress_bar 15
+#wget https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
+#tar -xzf "$USER_HOME/gap-4.15.1.tar.gz" > /dev/null 2>&1
+#progress_bar 15
 
 echo "[INFO] Compilando GAP y el kernel de Jupyter..."
 cd "$USER_HOME/gap-4.15.1"
@@ -71,6 +71,6 @@ echo "[INFO] Instalando JupyterKernel para GAP..."
 pip install . > /dev/null 2>&1 &
 progress_bar 10
 # --- PASO 6: Crear enlace simbólico ---
-sudo ln -s ~/gap-4.15.1/gap /usr/local/bin/gap
+sudo ln -s $USER_HOME/gap-4.15.1/gap /usr/local/bin/gap
 echo "Instalación completada"
 
