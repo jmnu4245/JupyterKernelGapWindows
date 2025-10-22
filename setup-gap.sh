@@ -16,7 +16,6 @@ progress_bar() {
     done
     printf "\r[##################################################] 100%%\n"
 }
-
 # --- PASO 1: Asegurarse de que se ejecuta como root ---
 if [ "$(id -u)" -ne 0 ]; then
     echo "[INFO] Este script debe ejecutarse como root (o con sudo)."
@@ -24,6 +23,17 @@ if [ "$(id -u)" -ne 0 ]; then
     exec sudo "$0" "$@"
     exit 1
 fi
+# --- Detectar carpeta de usuario principal ---
+#Si se quiere configurar para un usuario específico, cambiar esta parte
+USER_HOME=$(ls -d /home/* 2>/dev/null | head -n 1)
+
+# Si no se encuentra, usar /root como fallback
+if [ -z "$USER_HOME" ]; then
+    USER_HOME="/root"
+fi
+
+echo "[INFO] Carpeta de usuario detectada: $USER_HOME"
+
 # --- PASO 2: Instalar dependencias ---
 echo "[INFO] Instalando dependencias del sistema..."
 apt-get -y update > /dev/null 2>&1
@@ -31,22 +41,22 @@ apt-get -y install build-essential autoconf libtool libgmp-dev libreadline-dev z
 progress_bar 30
 # --- PASO 3: Crear entorno Python ---
 echo "[INFO] Configurando entorno virtual de Python..."
-mkdir -p ~/gap-env
-python3 -m venv ~/gap-env
-source ~/gap-env/bin/activate
+mkdir -p "$USER_HOME/gap-env"
+python3 -m venv "$USER_HOME/gap-env"
+source $USER_HOME/gap-env/bin/activate
 pip install --upgrade pip > /dev/null 2>&1 &
 progress_bar 20
 pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1 &
 progress_bar 20
 # --- PASO 4: Descargar y compilar GAP ---
-cd ~/
+cd "$USER_HOME"
 echo "[INFO] Descargando y descomprimiendo GAP..."
 wget https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
-tar -xvzf gap-4.15.1.tar.gz
+tar -xzf "$USER_HOME/gap-4.15.1.tar.gz" > /dev/null 2>&1
 progress_bar 15
 
 echo "[INFO] Compilando GAP y el kernel de Jupyter..."
-cd gap-4.15.1
+cd "$USER_HOME/gap-4.15.1"
 ./configure > /dev/null 2>&1 && make > /dev/null 2>&1 &
 progress_bar 40
 
