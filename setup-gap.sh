@@ -53,8 +53,8 @@ progress_bar 30
 # --- RESTO DE OPERACIONES COMO USUARIO NO PRIVILEGIADO ---
 echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
 
-# Ejecutar comandos directamente con su shell sin archivo temporal
-su - "$USERNAME" << 'EOFSCRIPT'
+# Ejecutar comandos directamente con su shell
+su - "$USERNAME" bash << 'EOFSCRIPT'
 
 progress_bar() {
     local duration=$1
@@ -73,13 +73,11 @@ progress_bar() {
     printf "\r[##################################################] 100%%\n"
 }
 
-USER_HOME="$HOME"
-
 # --- PASO 4: Crear entorno Python ---
 echo "[INFO] Configurando entorno virtual de Python..."
-mkdir -p "$USER_HOME/gap-env"
-python3 -m venv "$USER_HOME/gap-env"
-source "$USER_HOME/gap-env/bin/activate"
+cd "$HOME"
+python3 -m venv "$HOME/gap-env"
+source "$HOME/gap-env/bin/activate"
 
 pip install --upgrade pip > /dev/null 2>&1 &
 progress_bar 20
@@ -88,26 +86,26 @@ pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1 &
 progress_bar 20
 
 # --- PASO 5: Descargar y compilar GAP ---
-cd "$USER_HOME"
 echo "[INFO] Descargando y descomprimiendo GAP..."
+cd "$HOME"
 wget -q https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
 tar -xzf gap-4.15.1.tar.gz > /dev/null 2>&1 &
 progress_bar 15
 
 echo "[INFO] Compilando GAP..."
-cd "$USER_HOME/gap-4.15.1"
+cd "$HOME/gap-4.15.1"
 ./configure > /dev/null 2>&1 && make > /dev/null 2>&1 &
 progress_bar 60
 
 # --- PASO 6: Compilar paquetes y kernel ---
 echo "[INFO] Construyendo paquetes de GAP..."
-cd "$USER_HOME/gap-4.15.1/pkg"
+cd "$HOME/gap-4.15.1/pkg"
 ../bin/BuildPackages.sh > /dev/null 2>&1 &
 progress_bar 30
 
 cd jupyterkernel
 echo "[INFO] Instalando JupyterKernel para GAP..."
-source "$USER_HOME/gap-env/bin/activate"
+source "$HOME/gap-env/bin/activate"
 pip install . > /dev/null 2>&1 &
 progress_bar 10
 
