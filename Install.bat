@@ -33,18 +33,20 @@ echo.
 :: Obtener la ruta completa de este script
 set "SCRIPT_PATH=%~f0"
 
-:: --- PASO 1: Verificar y habilitar características de Windows ---
+:: --- Verificar y habilitar características de Windows ---
 echo [INFO] Verificando caracteristicas de Windows necesarias...
 powershell -ExecutionPolicy Bypass -File "%~dp0activarCaracteristicas.ps1"
 if %errorlevel% equ 1 (
     echo.
     echo [INFO] Reiniciando el sistema...
     shutdown /r /t 10 /c "Reiniciando para completar la instalacion de WSL"
+    pause
     goto :eof
 ) else (
     echo [INFO] Caracteristicas de Windows ya habilitadas. Continuando...
 )
 echo.
-:: --- PASO 2: Instalar WSL y la distribución de Linux ---
-powershell -ExecutionPolicy Bypass -File "%~dp0instalarWsl.ps1"
+:: --- Instalar WSL y la distribución de Linux ---
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0instalarWsl.ps1"
+pause
 goto :eof
