@@ -109,7 +109,7 @@ spinner $!
 echo ""
 
 # --- PASO 6: Compilar paquetes y kernel ---
-echo -n "[INFO] Construyendo paquetes de GAP..."
+echo -n "[INFO] Construyendo paquetes de GAP (esto puede tardar muchos minutos)"
 cd "$HOME/gap-4.15.1/pkg"
 ../bin/BuildPackages.sh > /dev/null 2>&1 &
 spinner $!
