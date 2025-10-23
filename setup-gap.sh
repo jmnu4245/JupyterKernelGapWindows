@@ -1,22 +1,19 @@
 #!/bin/bash
 
-progress_bar() {
-    local duration=$1
-    local elapsed=0
-    while [ $elapsed -lt $duration ]; do
-        local percent=$((elapsed * 100 / duration))
-        local filled=$((percent / 2))
-        local empty=$((50 - filled))
-        printf "\r["
-        printf "%0.s#" $(seq 1 $filled)
-        printf "%0.s-" $(seq 1 $empty)
-        printf "] %s%%" "$percent"
-        sleep 0.1
-        ((elapsed++))
+# Spinner animado que se ejecuta mientras un proceso está corriendo
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    echo -n " "
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spinstr#?}
+        printf "\r[%c] " "$spinstr"
+        spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
     done
-    printf "\r[##################################################] 100%%\n"
+    printf "\r[✓] "
 }
-
 # --- PASO 1: Verificar root ---
 if [ "$(id -u)" -ne 0 ]; then
     echo "[ERROR] Este script debe ejecutarse como root."
@@ -47,14 +44,15 @@ echo "[INFO] Carpeta de usuario: $USER_HOME"
 # --- LIMPIEZA: Eliminar instalaciones previas ---
 echo "[INFO] Limpiando instalaciones previas..."
 rm -rf "$USER_HOME/gap-env"
-rm -rf "$USER_HOME/gap-4.15.1*"
+rm -rf "$USER_HOME/gap-4.15.1"
 rm -f "$USER_HOME/gap-4.15.1.tar.gz"
 
 # --- PASO 3: Instalar dependencias del sistema (como root) ---
-echo "[INFO] Instalando dependencias del sistema..."
+echo -n "[INFO] Instalando dependencias del sistema..."
 apt-get -y update > /dev/null 2>&1
-apt-get -y install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev libzmq3-dev m4 python3 python3-pip python3-venv wget > /dev/null 2>&1
-echo "[OK] Dependencias instaladas"
+apt-get -y install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev libzmq3-dev m4 python3 python3-pip python3-venv wget > /dev/null 2>&1 &
+spinner $!
+echo ""
 
 # --- RESTO DE OPERACIONES COMO USUARIO NO PRIVILEGIADO ---
 echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
@@ -62,40 +60,67 @@ echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación...
 # Ejecutar directamente con sudo -u
 sudo -u "$USERNAME" bash <<'EOFSCRIPT'
 
+# Spinner animado
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    echo -n " "
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spinstr#?}
+        printf "\r[%c] " "$spinstr"
+        spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+    done
+    printf "\r[✓] "
+}
+
 # --- PASO 4: Crear entorno Python ---
 echo "[INFO] Configurando entorno virtual de Python..."
 cd "$HOME"
 python3 -m venv "$HOME/gap-env"
 source "$HOME/gap-env/bin/activate"
 
-echo "[INFO] Actualizando pip..."
-pip install --upgrade pip > /dev/null 2>&1
+echo -n "[INFO] Actualizando pip..."
+pip install --upgrade pip > /dev/null 2>&1 &
+spinner $!
+echo ""
 
-echo "[INFO] Instalando paquetes de Jupyter..."
-pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1
+echo -n "[INFO] Instalando paquetes de Jupyter..."
+pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1 &
+spinner $!
+echo ""
 
 # --- PASO 5: Descargar y compilar GAP ---
-echo "[INFO] Descargando GAP..."
-cd "$HOME"
-wget -q https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
+echo -n "[INFO] Descargando GAP..."
+wget -q https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz &
+spinner $!
+echo ""
 
-echo "[INFO] Descomprimiendo GAP..."
-tar -xzf gap-4.15.1.tar.gz
+echo -n "[INFO] Descomprimiendo GAP..."
+tar -xzf gap-4.15.1.tar.gz &
+spinner $!
+echo ""
 
-echo "[INFO] Compilando GAP (esto puede tardar varios minutos)..."
+echo -n "[INFO] Compilando GAP (esto puede tardar varios minutos)..."
 cd "$HOME/gap-4.15.1"
-./configure > /dev/null 2>&1
-make > /dev/null 2>&1
+(./configure > /dev/null 2>&1 && make > /dev/null 2>&1) &
+spinner $!
+echo ""
 
 # --- PASO 6: Compilar paquetes y kernel ---
-echo "[INFO] Construyendo paquetes de GAP..."
+echo -n "[INFO] Construyendo paquetes de GAP..."
 cd "$HOME/gap-4.15.1/pkg"
-../bin/BuildPackages.sh > /dev/null 2>&1
+../bin/BuildPackages.sh > /dev/null 2>&1 &
+spinner $!
+echo ""
 
-echo "[INFO] Instalando JupyterKernel para GAP..."
+echo -n "[INFO] Instalando JupyterKernel para GAP..."
 cd "$HOME/gap-4.15.1/pkg/jupyterkernel"
 source "$HOME/gap-env/bin/activate"
-pip install . > /dev/null 2>&1
+pip install . > /dev/null 2>&1 &
+spinner $!
+echo ""
 
 echo "[OK] Instalación completada para el usuario"
 EOFSCRIPT
@@ -109,3 +134,5 @@ echo "[OK] Instalación completada"
 SCRIPT_PATH=$(realpath "$0")
 echo "[INFO] Eliminando script: $SCRIPT_PATH"
 rm -f "$SCRIPT_PATH"
+
+[INFO] Compilando GAP... . . . 
