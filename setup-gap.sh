@@ -16,24 +16,30 @@ progress_bar() {
     done
     printf "\r[##################################################] 100%%\n"
 }
-# --- PASO 1: Asegurarse de que se ejecuta como root ---
+
+# --- PASO 1: Verificar root ---
 if [ "$(id -u)" -ne 0 ]; then
-    echo "[INFO] Este script debe ejecutarse como root (o con sudo)."
-    echo "[INFO] Intentando re-ejecutar con sudo..."
-    exec sudo "$0" "$@"
+    echo "[ERROR] Este script debe ejecutarse como root."
+    echo "[INFO] Usa: sudo $0"
     exit 1
 fi
-# --- Detectar carpeta de usuario principal ---
-#Si se quiere configurar para un usuario específico, cambiar esta parte
-USER_HOME=$(ls -d /home/* 2>/dev/null | head -n 1)
 
-# Si no se encuentra, usar /root como fallback
-if [ -z "$USER_HOME" ]; then
-    USER_HOME="/root"
+# --- PASO 2: Crear usuario 'user' con contraseña 'admin' ---
+USERNAME="user"
+PASSWORD="admin"
+
+if id "$USERNAME" &>/dev/null; then
+    echo "[INFO] El usuario '$USERNAME' ya existe, omitiendo creación."
+else
+    echo "[INFO] Creando usuario '$USERNAME'..."
+    useradd -m -s /bin/bash "$USERNAME"
+    echo "${USERNAME}:${PASSWORD}" | chpasswd
+    usermod -aG sudo "$USERNAME"
+    echo "[OK] Usuario '$USERNAME' creado con contraseña '$PASSWORD'"
 fi
 
-echo "[INFO] Carpeta de usuario detectada: $USER_HOME"
-
+USER_HOME=$(eval echo "~$USERNAME")
+echo "[INFO] Carpeta de usuario: $USER_HOME"
 # --- PASO 2: Instalar dependencias ---
 echo "[INFO] Instalando dependencias del sistema..."
 apt-get -y update > /dev/null 2>&1
@@ -57,18 +63,22 @@ progress_bar 15
 
 echo "[INFO] Compilando GAP y el kernel de Jupyter..."
 cd "$USER_HOME/gap-4.15.1"
-./configure && make 
+./configure && make > /dev/null 2>&1 &
+progress_bar 60
 
 # --- PASO 5: Compilar paquetes y kernel ---
 cd "$USER_HOME/gap-4.15.1/pkg"
 echo "[INFO] Construyendo paquetes de GAP..."
-../bin/BuildPackages.sh #> /dev/null 2>&1 &
+../bin/BuildPackages.sh > /dev/null 2>&1 &
 
 cd jupyterkernel
 echo "[INFO] Instalando JupyterKernel para GAP..."
-pip install . #> /dev/null 2>&1 &
+pip install . > /dev/null 2>&1 &
 progress_bar 10
 # --- PASO 6: Crear enlace simbólico ---
 sudo ln -s $USER_HOME/gap-4.15.1/gap /usr/local/bin/gap
 echo "Instalación completada"
 
+SCRIPT_PATH=$(realpath "$0")
+echo "[INFO] Eliminando script: $SCRIPT_PATH"
+rm -f "$SCRIPT_PATH"

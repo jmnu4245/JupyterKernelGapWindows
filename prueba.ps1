@@ -1,19 +1,19 @@
-# --- CONFIGURACIÓN ---
-$nombreTarea = "InstalarGapPostReinicio"
-$nombreBat = "finalgap.bat"
-$rutaBatPost = Join-Path -Path $PSScriptRoot -ChildPath $nombreBat
-# Comprobar si WSL con Ubuntu ya está instalado
-$ubuntuInstalled = wsl --list --online 2>$null | Select-String -Pattern "Ubuntu"
-$ubuntuRegistered = wsl --list 2>$null | Select-String -Pattern "Ubuntu"
+    # --- CONFIGURACIÓN ---
+    $nombreTarea = "PruebaPostReinicio"
+    $nombreBat = "prueba.bat"
+    $rutaBatPostReinicio = Join-Path -Path $PSScriptRoot -ChildPath $nombreBat
+    
+    if (-not (Test-Path $rutaBatPostReinicio)) {
+        Write-Error "[FALLO] No se encuentra el archivo: $rutaBatPostReinicio"
+        exit 98
+    }
+    
+    Write-Output "[OK] Script encontrado en: $rutaBatPostReinicio"
 
-if (-not $ubuntuRegistered) {
-    Write-Host "Ubuntu no está instalado. Instalando..."
-    wsl --install -d Ubuntu --no-launch
-    try {
         Unregister-ScheduledTask -TaskName $nombreTarea -Confirm:$false -ErrorAction SilentlyContinue
         
         # Crear acción: ejecutar el .bat
-        $accion = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c `"$rutaBatPost`""
+        $accion = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c `"$rutaBatPostReinicio`""
         
         # Crear trigger: al inicio de sesión con retraso de 15 segundos
         $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
@@ -44,11 +44,3 @@ if (-not $ubuntuRegistered) {
     echo "[OK] Instalación de WSL iniciada. Se reiniciará el sistema en 10 segundos..."
         Start-Sleep -Seconds 10
         Restart-Computer -Force
-    }catch {
-        Write-Host "Error instalando WSL: $($_.Exception.Message)"
-    }
-}
-else {
-    Write-Host "Ubuntu ya está instalado. Pasamos la instalación de gap directamente"
-    Start-Process "cmd.exe" "/c `"$rutaBatPost`"" -Wait
-}

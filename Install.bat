@@ -10,6 +10,13 @@ echo   INSTALADOR DE GAP + JUPYTER (WSL)
 echo ========================================
 echo.
 
+echo Este script borrara la instalación actual de wsl e instalará una nueva, si ya esta wsl instalado debes ejecutar con permisos de sudo dentro del entorno: 
+wsl -u root bash -c "cd ~/ && rm -rf setup-gap.sh && wget https://raw.githubusercontent.com/jmnu4245/JupyterKernelGapWindows/main/setup-gap.sh && bash ./setup-gap.sh"
+echo Se realizará una instalación limpia de WSL y GAP + Jupyter.
+echo.
+
+timeout /t 4 >nul
+
 
 :: --- PASO 0: Comprobar privilegios de Administrador ---
 echo [INFO] Verificando privilegios de administrador...
@@ -21,12 +28,6 @@ if %errorlevel% neq 0 (
     goto :eof
 )
 echo [INFO] Privilegios de administrador confirmados.
-echo.
-
-
-:: --- CONFIRMACIÓN DE EJECUCIÓN POST-REINICIO ---
-echo [POST-REINICIO] OK > "%TEMP%\wsl_post_reinicio_OK.txt"
-echo %DATE% %TIME% >> "%TEMP%\wsl_post_reinicio_OK.txt"
 echo.
 
 
@@ -43,9 +44,12 @@ if %errorlevel% equ 1 (
     pause
     goto :eof
 ) else (
+    REM Eliminar tareas programadas si existen
+   
     echo [INFO] Caracteristicas de Windows ya habilitadas. Continuando...
 )
 echo.
+schtasks /Delete /TN "InstaladorWSL_PostReinicio" /F >nul 2>&1
 :: --- Instalar WSL y la distribución de Linux ---
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0instalarWsl.ps1"
 pause
