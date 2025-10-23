@@ -28,15 +28,21 @@ fi
 USERNAME="user"
 PASSWORD="admin"
 
-if id "$USERNAME" &>/dev/null; then
-    echo "[INFO] El usuario '$USERNAME' ya existe, omitiendo creación."
+# Buscar usuarios con carpeta en /home
+EXISTING_USER=$(ls /home 2>/dev/null | head -n 1)
+
+if [ -n "$EXISTING_USER" ]; then
+    USERNAME="$EXISTING_USER"
+    echo "[INFO] Se ha detectado un usuario existente: '$USERNAME'."
 else
+    echo "[INFO] No se ha encontrado ningún usuario con carpeta en /home."
     echo "[INFO] Creando usuario '$USERNAME'..."
     useradd -m -s /bin/bash "$USERNAME"
     echo "${USERNAME}:${PASSWORD}" | chpasswd
     usermod -aG sudo "$USERNAME"
     echo "[OK] Usuario '$USERNAME' creado con contraseña '$PASSWORD'"
 fi
+
 
 USER_HOME=$(eval echo "~$USERNAME")
 echo "[INFO] Carpeta de usuario: $USER_HOME"
