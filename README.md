@@ -65,5 +65,22 @@ Por ejemplo:
 G := SymmetricGroup(4);
 Size(G);
 ```
+## Desinstalar
+
+### Eliminar la instalación completa de Ubuntu en WSL
+
+Si deseas eliminar completamente la distribución de Ubuntu que instalaste en WSL (junto con GAP y todos sus datos), puedes ejecutar:
+```bash
+wsl --unregister Ubuntu
+```
+⚠️ Esto eliminará toda la instalación de Ubuntu en WSL, incluyendo todos los archivos, entornos y configuraciones internas. Usa este comando solo si quieres hacer una desinstalación total.
+
+### Eliminar solo los archivos de GAP y su entorno
+
+Si solo quieres borrar los archivos descargados e instalados por el script (por ejemplo: gap-4.15.1.tar.gz, gap-4.15.1, gap-env), puedes hacerlo manualmente desde tu carpeta de usuario o desde la ruta donde se instaló GAP:
+```bash
+rm -rf ~/gap-4.15.1.tar.gz ~/gap-4.15.1 ~/gap-env
+
+```
 ## Problemas
 Puedes abrir un issue o mandar un correo a juanmanuelfloresdelacruz@gmail.com
