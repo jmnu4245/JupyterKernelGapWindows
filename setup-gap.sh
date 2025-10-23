@@ -28,9 +28,7 @@ fi
 USERNAME="user"
 PASSWORD="admin"
 
-# Buscar usuarios con carpeta en /home
 EXISTING_USER=$(ls /home 2>/dev/null | head -n 1)
-
 if [ -n "$EXISTING_USER" ]; then
     USERNAME="$EXISTING_USER"
     echo "[INFO] Se ha detectado un usuario existente: '$USERNAME'."
@@ -43,47 +41,96 @@ else
     echo "[OK] Usuario '$USERNAME' creado con contraseña '$PASSWORD'"
 fi
 
-
 USER_HOME=$(eval echo "~$USERNAME")
 echo "[INFO] Carpeta de usuario: $USER_HOME"
-# --- PASO 2: Instalar dependencias ---
+
+# --- PASO 3: Instalar dependencias del sistema (como root) ---
 echo "[INFO] Instalando dependencias del sistema..."
 apt-get -y update > /dev/null 2>&1
-apt-get -y install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev libzmq3-dev m4 python3 python3-pip python3-venv > /dev/null 2>&1 &
+apt-get -y install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev libzmq3-dev m4 python3 python3-pip python3-venv wget > /dev/null 2>&1 &
 progress_bar 30
-# --- PASO 3: Crear entorno Python ---
+
+# --- RESTO DE OPERACIONES COMO USUARIO NO PRIVILEGIADO ---
+echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
+
+rm -rf "$USER_HOME/gap*"
+rm -rf /usr/local/bin/gap
+# Crear script temporal que se ejecutará como el usuario
+TEMP_SCRIPT=$(mktemp)
+cat > "$TEMP_SCRIPT" << 'EOFSCRIPT'
+#!/bin/bash
+
+progress_bar() {
+    local duration=$1
+    local elapsed=0
+    while [ $elapsed -lt $duration ]; do
+        local percent=$((elapsed * 100 / duration))
+        local filled=$((percent / 2))
+        local empty=$((50 - filled))
+        printf "\r["
+        printf "%0.s#" $(seq 1 $filled)
+        printf "%0.s-" $(seq 1 $empty)
+        printf "] %s%%" "$percent"
+        sleep 0.1
+        ((elapsed++))
+    done
+    printf "\r[##################################################] 100%%\n"
+}
+
+USER_HOME="$HOME"
+
+# --- PASO 4: Crear entorno Python ---
 echo "[INFO] Configurando entorno virtual de Python..."
 mkdir -p "$USER_HOME/gap-env"
 python3 -m venv "$USER_HOME/gap-env"
-source $USER_HOME/gap-env/bin/activate
+source "$USER_HOME/gap-env/bin/activate"
+
 pip install --upgrade pip > /dev/null 2>&1 &
 progress_bar 20
+
 pip install notebook jupyter jupyterlab ipykernel > /dev/null 2>&1 &
 progress_bar 20
-# --- PASO 4: Descargar y compilar GAP ---
+
+# --- PASO 5: Descargar y compilar GAP ---
 cd "$USER_HOME"
 echo "[INFO] Descargando y descomprimiendo GAP..."
-wget https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
-tar -xzf "$USER_HOME/gap-4.15.1.tar.gz" > /dev/null 2>&1
+wget -q https://github.com/gap-system/gap/releases/download/v4.15.1/gap-4.15.1.tar.gz
+tar -xzf gap-4.15.1.tar.gz > /dev/null 2>&1 &
 progress_bar 15
 
-echo "[INFO] Compilando GAP y el kernel de Jupyter..."
+echo "[INFO] Compilando GAP..."
 cd "$USER_HOME/gap-4.15.1"
-./configure && make > /dev/null 2>&1 &
+./configure > /dev/null 2>&1 && make > /dev/null 2>&1 &
 progress_bar 60
 
-# --- PASO 5: Compilar paquetes y kernel ---
-cd "$USER_HOME/gap-4.15.1/pkg"
+# --- PASO 6: Compilar paquetes y kernel ---
 echo "[INFO] Construyendo paquetes de GAP..."
+cd "$USER_HOME/gap-4.15.1/pkg"
 ../bin/BuildPackages.sh > /dev/null 2>&1 &
+progress_bar 30
 
 cd jupyterkernel
 echo "[INFO] Instalando JupyterKernel para GAP..."
+source "$USER_HOME/gap-env/bin/activate"
 pip install . > /dev/null 2>&1 &
 progress_bar 10
-# --- PASO 6: Crear enlace simbólico ---
-sudo ln -s $USER_HOME/gap-4.15.1/gap /usr/local/bin/gap
-echo "Instalación completada"
+
+echo "[OK] Instalación completada para el usuario"
+EOFSCRIPT
+
+chmod +x "$TEMP_SCRIPT"
+
+# Ejecutar el script como el usuario no privilegiado
+su - "$USERNAME" -c "$TEMP_SCRIPT"
+
+# --- PASO 7: Crear enlace simbólico (requiere root) ---
+echo "[INFO] Creando enlace simbólico a GAP..."
+ln -sf "$USER_HOME/gap-4.15.1/gap" /usr/local/bin/gap
+
+# Limpieza
+rm -f "$TEMP_SCRIPT"
+
+echo "[OK] Instalación completada"
 
 SCRIPT_PATH=$(realpath "$0")
 echo "[INFO] Eliminando script: $SCRIPT_PATH"

@@ -11,8 +11,8 @@ echo ========================================
 echo.
 
 echo Este script borrara la instalación actual de wsl e instalará una nueva, si ya esta wsl instalado debes ejecutar con permisos de sudo dentro del entorno: 
-wsl -u root bash -c "cd ~/ && rm -rf setup-gap.sh && wget https://raw.githubusercontent.com/jmnu4245/JupyterKernelGapWindows/main/setup-gap.sh && bash ./setup-gap.sh"
-echo Se realizará una instalación limpia de WSL y GAP + Jupyter.
+echo " wsl -u root bash -c 'cd ~/ && rm -rf setup-gap.sh && wget https://raw.githubusercontent.com/jmnu4245/JupyterKernelGapWindows/main/setup-gap.sh && bash ./setup-gap.sh' " 
+echo Se realizara una instalación limpia de WSL y GAP + Jupyter.
 echo.
 
 timeout /t 4 >nul
