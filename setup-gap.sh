@@ -59,8 +59,8 @@ progress_bar 30
 # --- RESTO DE OPERACIONES COMO USUARIO NO PRIVILEGIADO ---
 echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
 
-# Ejecutar comandos directamente con su shell
-su - "$USERNAME" /bin/bash << 'EOFSCRIPT'
+# Ejecutar directamente con sudo -u (más compatible que su)
+sudo -u "$USERNAME" bash <<'EOFSCRIPT'
 
 progress_bar() {
     local duration=$1
