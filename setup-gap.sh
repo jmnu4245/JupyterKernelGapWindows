@@ -44,6 +44,7 @@ fi
 USER_HOME=$(eval echo "~$USERNAME")
 echo "[INFO] Carpeta de usuario: $USER_HOME"
 
+rm -rf "$USER_HOME/gap*"
 # --- PASO 3: Instalar dependencias del sistema (como root) ---
 echo "[INFO] Instalando dependencias del sistema..."
 apt-get -y update > /dev/null 2>&1
