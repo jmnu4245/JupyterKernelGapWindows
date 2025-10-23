@@ -60,7 +60,7 @@ progress_bar 30
 echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
 
 # Ejecutar comandos directamente con su shell
-su - "$USERNAME" bash << 'EOFSCRIPT'
+su - "$USERNAME" /bin/bash << 'EOFSCRIPT'
 
 progress_bar() {
     local duration=$1
