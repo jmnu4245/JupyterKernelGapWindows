@@ -47,8 +47,7 @@ echo "[INFO] Carpeta de usuario: $USER_HOME"
 # --- LIMPIEZA: Eliminar instalaciones previas ---
 echo "[INFO] Limpiando instalaciones previas..."
 rm -rf "$USER_HOME/gap-env"
-rm -rf "$USER_HOME/gap-4.15.1"
-rm -f "$USER_HOME/gap-4.15.1.tar.gz"
+rm -rf "$USER_HOME/gap-4.15.1*"
 
 # --- PASO 3: Instalar dependencias del sistema (como root) ---
 echo "[INFO] Instalando dependencias del sistema..."
@@ -109,7 +108,7 @@ cd "$HOME/gap-4.15.1/pkg"
 ../bin/BuildPackages.sh > /dev/null 2>&1 &
 progress_bar 30
 
-cd jupyterkernel
+cd "$HOME/gap-4.15.1/pkg/jupyterkernel"
 echo "[INFO] Instalando JupyterKernel para GAP..."
 source "$HOME/gap-env/bin/activate"
 pip install . > /dev/null 2>&1 &
