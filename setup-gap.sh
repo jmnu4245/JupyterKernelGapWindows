@@ -53,12 +53,8 @@ progress_bar 30
 # --- RESTO DE OPERACIONES COMO USUARIO NO PRIVILEGIADO ---
 echo "[INFO] Cambiando a usuario '$USERNAME' para el resto de la instalación..."
 
-rm -rf "$USER_HOME/gap*"
-rm -rf /usr/local/bin/gap
-# Crear script temporal que se ejecutará como el usuario
-TEMP_SCRIPT=$(mktemp)
-cat > "$TEMP_SCRIPT" << 'EOFSCRIPT'
-#!/bin/bash
+# Ejecutar comandos directamente con su shell sin archivo temporal
+su - "$USERNAME" << 'EOFSCRIPT'
 
 progress_bar() {
     local duration=$1
@@ -118,17 +114,9 @@ progress_bar 10
 echo "[OK] Instalación completada para el usuario"
 EOFSCRIPT
 
-chmod +x "$TEMP_SCRIPT"
-
-# Ejecutar el script como el usuario no privilegiado
-su - "$USERNAME" -c "$TEMP_SCRIPT"
-
 # --- PASO 7: Crear enlace simbólico (requiere root) ---
 echo "[INFO] Creando enlace simbólico a GAP..."
 ln -sf "$USER_HOME/gap-4.15.1/gap" /usr/local/bin/gap
-
-# Limpieza
-rm -f "$TEMP_SCRIPT"
 
 echo "[OK] Instalación completada"
 
