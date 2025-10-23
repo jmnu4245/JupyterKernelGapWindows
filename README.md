@@ -1,4 +1,6 @@
 ## INSTRUCCIONES DE USO
+Una ejecución correcta consiste simplemente en ejecutar install.bat con permisos de administrador y seguir las indicaciones, el proceso puede llevar varios reinicios.
+
 El script tiene 3 partes importantes: 
 - Comprueba que las características de windows para ejecutar WSl están activadas.
     - Si estan activadas no hace nada
