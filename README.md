@@ -86,3 +86,6 @@ rm -rf ~/gap-4.15.1.tar.gz ~/gap-4.15.1 ~/gap-env
 ```
 ## Problemas
 Puedes abrir un issue o mandar un correo a juanmanuelfloresdelacruz@gmail.com
+### Tareas irealizadas
+En caso de que algún error haga que el script no se realice de forma adecuada y se quiera eliminar las tareas basta con ejecutar eliminarTareas.bat 
+
