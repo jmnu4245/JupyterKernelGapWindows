@@ -1,11 +1,11 @@
 # 0. Inicializar la variable de reinicio
-# Por defecto, asumimos que no se necesita.
+$nombreTarea = "\instalacionkernelgap\InstaladorWSLPostReinicio"
+$nombreBat = "install.bat"
+$rutaBatPostReinicio = Join-Path -Path $PSScriptRoot -ChildPath $nombreBat
 $globalRestartNeeded = $false
-
 # 1. Obtener el estado de las características
 $wsl = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
 $vm = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform
-
 # 2. Comprobar y habilitar WSL
 if ($wsl.State -ne 'Enabled') {
     Write-Output '[INFO] Habilitando Subsistema de Windows para Linux...'
@@ -25,11 +25,7 @@ if ($vm.State -ne 'Enabled') {
 # 4. Reinicio y progamación post-reinicio
 if ($globalRestartNeeded) {
     Write-Output '[INFO] La instalación ha finalizado y se requiere un reinicio.'
-   
     # --- CONFIGURACIÓN ---
-    $nombreBat = "install.bat"
-    $rutaBatPostReinicio = Join-Path -Path $PSScriptRoot -ChildPath $nombreBat
-    
     if (-not (Test-Path $rutaBatPostReinicio)) {
         Write-Error "[FALLO] No se encuentra el archivo: $rutaBatPostReinicio"
         exit 98
@@ -38,27 +34,20 @@ if ($globalRestartNeeded) {
     Write-Output "[OK] Script encontrado en: $rutaBatPostReinicio"
     
     # --- CREAR TAREA PROGRAMADA ---
-    $nombreTarea = "InstaladorWSL_PostReinicio"
     
     Write-Output "[INFO] Creando tarea programada..."
-    
     try {
         # Eliminar tarea si ya existe
         Unregister-ScheduledTask -TaskName $nombreTarea -Confirm:$false -ErrorAction SilentlyContinue
-        
         # Crear acción: ejecutar el .bat
         $accion = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c `"$rutaBatPostReinicio`""
-        
         # Crear trigger: al inicio de sesión con retraso de 15 segundos
         $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
         $trigger.Delay = "PT15S"
-        
         # Configuración: ejecutar con privilegios máximos
         $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
-        
         # Settings simples
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-        
         # Registrar la tarea
         Register-ScheduledTask -TaskName $nombreTarea `
                                -Action $accion `
@@ -68,7 +57,6 @@ if ($globalRestartNeeded) {
                                -Force | Out-Null
         
         Write-Output "[OK] Tarea programada creada: $nombreTarea"
-        
         # Configurar para que se ejecute solo una vez
         $xml = Export-ScheduledTask -TaskName $nombreTarea
         $xml = $xml -replace '<MultipleInstancesPolicy>.*</MultipleInstancesPolicy>', '<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>'
@@ -78,23 +66,20 @@ if ($globalRestartNeeded) {
         Write-Error "[FALLO] No se pudo crear la tarea programada: $_"
         exit 99
     }
-    
     # --- INFORMACIÓN PARA EL USUARIO ---
     Write-Output ""
     Write-Output "=========================================="
     Write-Output "  INFORMACION DE REINICIO"
     Write-Output "=========================================="
-    Write-Output "[!!!] El sistema se reiniciará en 15 segundos"
+    Write-Output "[!!!] El sistema se reiniciara en 15 segundos"
     Write-Output "[INFO] Tras el reinicio e inicio de sesión,"
-    Write-Output "[INFO] la instalación continuará en ~15 segundos"
+    Write-Output "[INFO] la instalación continuara automáticamente."
     Write-Output "=========================================="
     Write-Output ""
-    
     Start-Sleep -Seconds 15
     Restart-Computer -Force
     exit 1
 } else {
-    Write-Output '[OK] Todas las características necesarias ya estaban habilitadas. No se necesita reinicio.'
-    # Devolvemos 0 para indicar éxito sin reinicio
+    Write-Output '[OK] Todas las caracteristicas necesarias ya estaban habilitadas. No se necesita reinicio.'
     exit 0
 }

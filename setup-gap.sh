@@ -135,4 +135,4 @@ SCRIPT_PATH=$(realpath "$0")
 echo "[INFO] Eliminando script: $SCRIPT_PATH"
 rm -f "$SCRIPT_PATH"
 
-[INFO] Compilando GAP... . . . 
+exit 0
