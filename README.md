@@ -14,7 +14,7 @@ La ejecución sigue este proceso:
 install.bat -> activarCaracteristicas.ps1 -> (Reinicia si no estaban activadas) -> install.bat -> instalarWsl.ps1 -> (Reiniciar si no estaba instalado) -> finalgap.bat -> setup-gap.sh
 
 ## Verificación de la instalación
-Todo esta instaladon dentro del Windows Subsystem for Linux, se puede acceder ejecutando: 
+Todo esta instalado dentro del Windows Subsystem for Linux, se puede acceder ejecutando: 
 ```cmd
 wsl
 ```
