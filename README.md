@@ -60,11 +60,11 @@ Hay cuatro partes importantes para un funcionamiento adecuado:
 
 - Instala la extensión Jupyter desde el marketplace de VS Code.
 - Conecta VSCode a WSL en la esquina izquerda inferior.
-- Abre el directorio /user en VSCode
+- Abre el directorio /user en VSCode de forma que te aparezca el directorio /env_gap a la izquierda
 
 Ahora abre un archivo .ipynb o crea uno nuevo.
 
-- En la parte superior derecha, selecciona el kernel GAP.
+- En la parte arriba a la izquierda debes seleccionar GAP. En caso de que no lo detecte, revisa el paso anterior.
 
 Escribe y ejecuta código GAP directamente en las celdas.
 Por ejemplo:
