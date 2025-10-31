@@ -56,10 +56,15 @@ Available kernels:
 ```
 ## Usar GAP en Visual Studio Code
 
-Instala la extensión Jupyter desde el marketplace de VS Code.
-Conecta VSCode a WSL en la esquina izquerda inferior.
-Abre un archivo .ipynb o crea uno nuevo.
-En la parte superior derecha, selecciona el kernel GAP.
+Hay cuatro partes importantes para un funcionamiento adecuado:
+
+- Instala la extensión Jupyter desde el marketplace de VS Code.
+- Conecta VSCode a WSL en la esquina izquerda inferior.
+- Abre el directorio /user en VSCode
+
+Ahora abre un archivo .ipynb o crea uno nuevo.
+
+- En la parte superior derecha, selecciona el kernel GAP.
 
 Escribe y ejecuta código GAP directamente en las celdas.
 Por ejemplo:
